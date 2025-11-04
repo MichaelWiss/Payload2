@@ -1,9 +1,12 @@
 import { getPayloadClient } from '@/lib/payload'
 
+import ProductCard from '../components/ProductCard'
+
 async function getProducts() {
   const payload = await getPayloadClient()
   const products = await payload.find({
     collection: 'products',
+    depth: 1,
     limit: 12,
   })
   return products.docs
@@ -41,38 +44,30 @@ export default async function ProductsPage() {
       {/* Products Grid */}
       <section style={{ padding: '5vw 3vw' }}>
         <div className="grid grid-cols-4 gap-6">
-          {products.map((product: any) => (
-            <div key={product.id} className="product-tile">
-              {product.images?.[0]?.image ? (
-                <img
-                  src={`/api/media/file/${product.images[0].image.filename}`}
-                  alt={product.images[0].alt}
-                  style={{ width: '100%', height: '180px', objectFit: 'cover' }}
-                />
-              ) : (
-                <div className="tile-image">
-                  {product.category?.name === 'Candles' ? '🕯️' : 
-                   product.category?.name === 'Crystals' ? '🔮' : 
-                   product.category?.name === 'Oils' ? '🫗' : '✨'}
-                </div>
-              )}
-              <div style={{ padding: '1.2rem' }}>
-                <h3 style={{ fontWeight: '800', margin: '0 0 .4rem', fontSize: '.95rem' }}>
-                  {product.title}
-                </h3>
-                <p style={{ fontSize: '.85rem', lineHeight: '1.5', color: '#666', margin: '0 0 1rem' }}>
-                  ${product.price}
-                </p>
-                <a 
-                  href={`/products/${product.slug}`} 
-                  className="btn-primary" 
-                  style={{ fontSize: '.8rem', padding: '.5rem 1rem', width: '100%', textAlign: 'center' }}
-                >
-                  View Details
-                </a>
-              </div>
-            </div>
-          ))}
+          {products.map((product: any) => {
+            const categoryName =
+              product.category && typeof product.category === 'object' && 'name' in product.category
+                ? product.category.name
+                : null
+            const description =
+              typeof product.description === 'string'
+                ? product.description
+                : product.summary ?? undefined
+
+            return (
+              <ProductCard
+                key={product.id}
+                title={product.title}
+                slug={product.slug}
+                price={product.price}
+                description={
+                  description ??
+                  (categoryName ? `From the ${categoryName.toLowerCase()} collection.` : 'Crafted for mindful practice.')
+                }
+                media={product.images}
+              />
+            )
+          })}
         </div>
 
         {products.length === 0 && (

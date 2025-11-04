@@ -10,6 +10,7 @@ async function getProduct(slug: string) {
         equals: slug,
       },
     },
+    depth: 1,
     limit: 1,
   })
   
